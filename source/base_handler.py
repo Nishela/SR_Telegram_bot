@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import CallbackContext, ConversationHandler
-
+from tic_tac_toe.source import abstract_interface
 from source import Keyboard
 
 all = ("BaseHandler",)
@@ -30,7 +30,7 @@ class BaseHandler:
         context.bot.send_message(
             chat_id=update.effective_chat.id, text="Я на знаю такой команды 🤨\nПопробуй еще разок!"
         )
-        return
+        # return ConversationHandler.END
 
     def get_name(self, update: Update, context: CallbackContext):
         context.user_data["name"] = update.message.text
@@ -51,6 +51,9 @@ class BaseHandler:
             f'Твоя фамилия {update.effective_user["last_name"]}!', reply_markup=self.keyboard.keyboard_clear()
         )
         return ConversationHandler.END
+
+    def choice_game_mode(self, update: Update, context: CallbackContext):
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Выбери режим игры!")
 
     def __del__(self):
         print(1)

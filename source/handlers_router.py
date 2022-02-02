@@ -7,17 +7,29 @@ all = ("Router",)
 
 class Router:
     def __init__(self):
-        self.base = BaseHandler()
-        self.commands = {"/start": self.base.start, "/stop": self.base.stop, "/help": self.base.help}
-        self.message_states = {1: self.base.get_name, 2: self.base.user_last_name}
+        self.base = BaseHandler
         self.state = None
 
     def __call__(self, update: Update, context: CallbackContext):
-        try:
-            if update.message.text in self.commands:
-                self.state = self.commands[update.message.text].__call__(update, context)
-            else:
-                self.state = self.message_states[self.state].__call__(update, context)
-        except KeyError:
-            return self.base.unknown_command(update, context)
+        self.state = self.choose_handler(update, context)
         return self.state
+
+    def choose_handler(self, update, context):
+        commands = {
+            "/start": lambda: self.base().choice_game_mode(update, context),
+            "/stop": lambda: self.base().stop(update, context),
+            "/help": lambda: self.base().help(update, context),
+            "unknown": lambda: self.base().unknown_command(update, context),
+        }
+        states = {
+            1: lambda: self.base().get_name(update, context),
+            2: lambda: self.base().user_last_name(update, context),
+        }
+        message = update.message.text
+        if "/" in message:
+            try:
+                return commands[message]()
+            except KeyError:
+                return commands["unknown"]()
+        else:
+            return states[self.state]()
